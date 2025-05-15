@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
@@ -18,7 +17,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 const examFormSchema = z.object({
   title: z.string().min(1, { message: "Exam title is required" }),
   instructions: z.string().optional(),
-  content: z.string().min(1, { message: "Exam content is required" }),
 });
 
 type ExamFormValues = z.infer<typeof examFormSchema>;
@@ -34,7 +32,6 @@ const NewExam: React.FC = () => {
     defaultValues: {
       title: '',
       instructions: '',
-      content: '',
     },
   });
 
@@ -50,7 +47,6 @@ const NewExam: React.FC = () => {
           { 
             title: values.title,
             class_id: classId,
-            content: values.content,
             instructions: values.instructions,
           }
         ])
@@ -122,25 +118,7 @@ const NewExam: React.FC = () => {
                     <FormControl>
                       <Textarea
                         placeholder="Instructions for students taking this exam..."
-                        rows={2}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Exam Content*</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter the questions and content of your exam here..."
-                        rows={8}
+                        rows={4}
                         {...field}
                       />
                     </FormControl>

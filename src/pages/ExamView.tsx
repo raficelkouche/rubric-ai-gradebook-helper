@@ -11,10 +11,10 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 interface ExamData {
   id: string;
   title: string;
-  content: string;
-  instructions?: string;
   class_id: string;
   created_at: string;
+  status?: string;
+  instructions?: string;
 }
 
 const ExamView: React.FC = () => {
@@ -105,10 +105,13 @@ const ExamView: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Exam Content</CardTitle>
+          <CardTitle className="text-xl">Exam Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="whitespace-pre-wrap">{exam.content}</div>
+          <div className="space-y-2">
+            <p><strong>Status:</strong> {exam.status || 'In Progress'}</p>
+            <p><strong>Created:</strong> {new Date(exam.created_at).toLocaleString()}</p>
+          </div>
         </CardContent>
       </Card>
 
