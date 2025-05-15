@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -37,18 +38,18 @@ const Sidebar: React.FC = () => {
 
   return (
     <ShadcnSidebar
-      className={`bg-rubric-navy text-white ${collapsed ? 'w-16' : 'w-64'}`}
-      collapsible
+      className={`bg-rubric-navy text-white ${isCollapsed ? 'w-16' : 'w-64'}`}
+      collapsible="icon"
     >
       <div className="h-14 flex items-center px-4">
-        <Logo showText={!collapsed} className="text-white" />
+        <Logo showText={!isCollapsed} className="text-white" />
         <div className="flex-1" />
-        <SidebarTrigger className={collapsed ? 'hidden' : 'text-white'} />
+        <SidebarTrigger className={isCollapsed ? 'hidden' : 'text-white'} />
       </div>
 
       <SidebarContent className="p-2">
-        <SidebarGroup defaultOpen>
-          {!collapsed && <SidebarGroupLabel className="text-gray-400">Main</SidebarGroupLabel>}
+        <SidebarGroup>
+          {!isCollapsed && <SidebarGroupLabel className="text-gray-400">Main</SidebarGroupLabel>}
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -56,7 +57,7 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/dashboard" className={getNavCls}>
                     <BarChart className="h-5 w-5" />
-                    {!collapsed && <span className="ml-3">Dashboard</span>}
+                    {!isCollapsed && <span className="ml-3">Dashboard</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -65,7 +66,7 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/classes" className={getNavCls}>
                     <FileText className="h-5 w-5" />
-                    {!collapsed && <span className="ml-3">Classes</span>}
+                    {!isCollapsed && <span className="ml-3">Classes</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -74,7 +75,7 @@ const Sidebar: React.FC = () => {
         </SidebarGroup>
 
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel className="text-gray-400">Account</SidebarGroupLabel>}
+          {!isCollapsed && <SidebarGroupLabel className="text-gray-400">Account</SidebarGroupLabel>}
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -82,7 +83,7 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/profile" className={getNavCls}>
                     <User className="h-5 w-5" />
-                    {!collapsed && <span className="ml-3">Profile</span>}
+                    {!isCollapsed && <span className="ml-3">Profile</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -91,7 +92,7 @@ const Sidebar: React.FC = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/logout" className={getNavCls}>
                     <LogOut className="h-5 w-5" />
-                    {!collapsed && <span className="ml-3">Logout</span>}
+                    {!isCollapsed && <span className="ml-3">Logout</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
