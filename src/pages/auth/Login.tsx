@@ -1,46 +1,23 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const { signIn, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
     try {
-      // In a real app, we would integrate with a backend auth system
-      // For now, simulate a successful login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, just check if the fields are not empty
-      if (email && password) {
-        toast({
-          title: "Login successful",
-          description: "Welcome back to RubricAI!",
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error("Please enter both email and password");
-      }
+      await signIn(email, password);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Login failed. Please try again.";
-      toast({
-        title: "Login failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Login error:', error);
     }
   };
 
