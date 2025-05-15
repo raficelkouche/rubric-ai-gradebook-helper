@@ -13,6 +13,8 @@ import Dashboard from "./pages/Dashboard";
 import ClassesList from "./pages/ClassesList";
 import ClassDetail from "./pages/ClassDetail";
 import NewClass from "./pages/NewClass";
+import NewExam from "./pages/NewExam";
+import ExamView from "./pages/ExamView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,8 @@ const App = () => (
               <Route path="/classes" element={<ClassesList />} />
               <Route path="/classes/new" element={<NewClass />} />
               <Route path="/classes/:id" element={<ClassDetail />} />
+              <Route path="/classes/:classId/exams/new" element={<NewExam />} />
+              <Route path="/exams/:examId" element={<ExamView />} />
             </Route>
 
             {/* 404 Route */}

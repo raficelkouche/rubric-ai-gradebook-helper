@@ -9,6 +9,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      classes: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
+      exams: {
+        Row: {
+          class_id: string
+          created_at: string | null
+          id: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -35,6 +88,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      submissions: {
+        Row: {
+          exam_id: string
+          feedback: string | null
+          grade: number | null
+          id: string
+          student_name: string
+          submitted_at: string | null
+          upload_url: string | null
+        }
+        Insert: {
+          exam_id: string
+          feedback?: string | null
+          grade?: number | null
+          id?: string
+          student_name: string
+          submitted_at?: string | null
+          upload_url?: string | null
+        }
+        Update: {
+          exam_id?: string
+          feedback?: string | null
+          grade?: number | null
+          id?: string
+          student_name?: string
+          submitted_at?: string | null
+          upload_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

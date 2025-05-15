@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,68 +9,68 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-const classFormSchema = z.object({
-  name: z.string().min(1, { message: "Class name is required" }),
-  description: z.string().optional(),
-  subject: z.string().optional(),
-  grade: z.string().optional(),
+const examFormSchema = z.object({
+  title: z.string().min(1, { message: "Exam title is required" }),
+  instructions: z.string().optional(),
+  content: z.string().min(1, { message: "Exam content is required" }),
 });
 
-type ClassFormValues = z.infer<typeof classFormSchema>;
+type ExamFormValues = z.infer<typeof examFormSchema>;
 
-const NewClass: React.FC = () => {
+const NewExam: React.FC = () => {
   const navigate = useNavigate();
+  const { classId } = useParams<{ classId: string }>();
   const { user } = useRequireAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<ClassFormValues>({
-    resolver: zodResolver(classFormSchema),
+  const form = useForm<ExamFormValues>({
+    resolver: zodResolver(examFormSchema),
     defaultValues: {
-      name: '',
-      description: '',
-      subject: '',
-      grade: '',
+      title: '',
+      instructions: '',
+      content: '',
     },
   });
 
-  const onSubmit = async (values: ClassFormValues) => {
-    if (!user) return;
+  const onSubmit = async (values: ExamFormValues) => {
+    if (!user || !classId) return;
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('classes')
+      // Insert the exam into the exams table
+      const { data: examData, error: examError } = await supabase
+        .from('exams')
         .insert([
           { 
-            name: values.name,
-            teacher_id: user.id,
-            // Additional fields can be added in the future
+            title: values.title,
+            class_id: classId,
+            content: values.content,
+            instructions: values.instructions,
           }
         ])
         .select();
       
-      if (error) throw error;
+      if (examError) throw examError;
       
       toast({
-        title: "Class created",
-        description: `${values.name} has been created successfully.`,
+        title: "Exam created",
+        description: `${values.title} has been created successfully.`,
       });
       
-      navigate('/classes');
+      navigate(`/classes/${classId}`);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create class",
+        description: error.message || "Failed to create exam",
         variant: "destructive",
       });
-      console.error("Error creating class:", error);
+      console.error("Error creating exam:", error);
     } finally {
       setIsLoading(false);
     }
@@ -82,31 +82,31 @@ const NewClass: React.FC = () => {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => navigate('/classes')}
+          onClick={() => navigate(`/classes/${classId}`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight text-rubric-navy">Create New Class</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-rubric-navy">Create New Exam</h1>
       </div>
 
       <Card>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
-              <CardTitle>Class Details</CardTitle>
+              <CardTitle>Exam Details</CardTitle>
               <CardDescription>
-                Enter the information for your new class.
+                Enter the information for your new exam.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <FormField
                 control={form.control}
-                name="name"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Class Name*</FormLabel>
+                    <FormLabel>Exam Title*</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Algebra 101" {...field} />
+                      <Input placeholder="e.g., Midterm Exam" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -115,42 +115,32 @@ const NewClass: React.FC = () => {
               
               <FormField
                 control={form.control}
-                name="subject"
+                name="instructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Mathematics" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="grade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grade Level</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 10th Grade, Freshman, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Instructions</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe what this class is about..."
-                        rows={4}
+                        placeholder="Instructions for students taking this exam..."
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Exam Content*</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter the questions and content of your exam here..."
+                        rows={8}
                         {...field}
                       />
                     </FormControl>
@@ -163,7 +153,7 @@ const NewClass: React.FC = () => {
               <Button 
                 type="button" 
                 variant="outline"
-                onClick={() => navigate('/classes')}
+                onClick={() => navigate(`/classes/${classId}`)}
               >
                 Cancel
               </Button>
@@ -172,7 +162,7 @@ const NewClass: React.FC = () => {
                 className="bg-rubric-navy hover:bg-rubric-navy-light"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating..." : "Create Class"}
+                {isLoading ? "Creating..." : "Create Exam"}
               </Button>
             </CardFooter>
           </form>
@@ -182,4 +172,4 @@ const NewClass: React.FC = () => {
   );
 };
 
-export default NewClass;
+export default NewExam;
