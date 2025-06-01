@@ -46,8 +46,7 @@ const NewExam: React.FC = () => {
         .insert([
           { 
             title: values.title,
-            class_id: classId,
-            instructions: values.instructions,
+            class_id: classId
           }
         ])
         .select();

@@ -28,7 +28,15 @@ export type Database = {
           name?: string
           teacher_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exams: {
         Row: {
@@ -89,33 +97,65 @@ export type Database = {
         }
         Relationships: []
       }
+      students: {
+        Row: {
+          class_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           exam_id: string
-          feedback: string | null
+          feedback: Json
           grade: number | null
           id: string
-          student_name: string
+          student_id: string
+          submission_text: string
           submitted_at: string | null
-          upload_url: string | null
         }
         Insert: {
           exam_id: string
-          feedback?: string | null
+          feedback: Json
           grade?: number | null
           id?: string
-          student_name: string
+          student_id: string
+          submission_text: string
           submitted_at?: string | null
-          upload_url?: string | null
         }
         Update: {
           exam_id?: string
-          feedback?: string | null
+          feedback?: Json
           grade?: number | null
           id?: string
-          student_name?: string
+          student_id?: string
+          submission_text?: string
           submitted_at?: string | null
-          upload_url?: string | null
         }
         Relationships: [
           {
@@ -123,6 +163,13 @@ export type Database = {
             columns: ["exam_id"]
             isOneToOne: false
             referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import ClassDetail from "./pages/ClassDetail";
 import NewClass from "./pages/NewClass";
 import NewExam from "./pages/NewExam";
 import ExamView from "./pages/ExamView";
+import SubmissionView from "./pages/SubmissionView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +42,7 @@ const App = () => (
               <Route path="/classes/:id" element={<ClassDetail />} />
               <Route path="/classes/:classId/exams/new" element={<NewExam />} />
               <Route path="/exams/:examId" element={<ExamView />} />
+              <Route path="/submissions/:submissionId" element={<SubmissionView />} />
             </Route>
 
             {/* 404 Route */}

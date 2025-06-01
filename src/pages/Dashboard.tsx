@@ -1,19 +1,14 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, PieChart, Pie, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { toast } from '@/components/ui/use-toast';
 
-// Demo data
-const classData = [
-  { name: 'Math 101', exams: 4, students: 30, average: 82 },
-  { name: 'Physics 202', exams: 3, students: 24, average: 78 },
-  { name: 'Chemistry 303', exams: 2, students: 28, average: 85 },
-  { name: 'Biology 404', exams: 5, students: 22, average: 76 },
-];
-
+// Demo data for charts (these would also come from real data in a full implementation)
 const examStatusData = [
   { name: 'Completed', value: 8 },
   { name: 'In Progress', value: 2 },
@@ -30,9 +25,88 @@ const gradeDistribution = [
 
 const COLORS = ['#457B9D', '#A8DADC', '#E63946'];
 
+interface ClassData {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  teacher_id: string;
+  exams?: {count: number}[];
+  students?: {count: number}[];
+  average?: number | null;
+}
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [recentClasses] = useState(classData);
+  const { user } = useRequireAuth();
+  const [recentClasses, setRecentClasses] = useState<ClassData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalClasses: 0,
+    totalExams: 0,
+    totalStudents: 0,
+  });
+
+  
+  const fetchDashboardData = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+
+      // Fetch classes for the current user
+        const { data: classesData, error: classesError } = await supabase
+          .from("classes")
+          .select(
+            `
+              *,
+              exams(count),
+              students(count)
+            `
+          )
+          .eq("teacher_id", user.id)
+          .order("created_at", { ascending: false });
+
+      if (classesError) throw classesError;
+
+      
+      const totalStudents = classesData.reduce((acc, curr) => acc + curr.students[0].count, 0)
+      const totalExams = classesData.reduce((acc, curr) => acc + curr.exams[0].count, 0)
+
+      setRecentClasses(classesData);
+
+      setStats({
+        totalClasses: classesData?.length || 0,
+        totalExams,
+        totalStudents,
+      });
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
+      });
+      console.error("Error loading dashboard data:", errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+  
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-rubric-navy" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -53,7 +127,7 @@ const Dashboard: React.FC = () => {
             <CardDescription>Your active classes</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-rubric-navy">{classData.length}</div>
+            <div className="text-4xl font-bold text-rubric-navy">{stats.totalClasses}</div>
           </CardContent>
         </Card>
         <Card>
@@ -62,9 +136,7 @@ const Dashboard: React.FC = () => {
             <CardDescription>Across all classes</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-rubric-navy">
-              {classData.reduce((sum, cls) => sum + cls.exams, 0)}
-            </div>
+            <div className="text-4xl font-bold text-rubric-navy">{stats.totalExams}</div>
           </CardContent>
         </Card>
         <Card>
@@ -73,9 +145,7 @@ const Dashboard: React.FC = () => {
             <CardDescription>In all your classes</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-rubric-navy">
-              {classData.reduce((sum, cls) => sum + cls.students, 0)}
-            </div>
+            <div className="text-4xl font-bold text-rubric-navy">{stats.totalStudents}</div>
           </CardContent>
         </Card>
       </div>
@@ -132,29 +202,39 @@ const Dashboard: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">Recent Classes</CardTitle>
-          <CardDescription>Your most active classes</CardDescription>
+          <CardDescription>Your most recently created classes</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <div className="grid grid-cols-4 p-4 font-medium border-b">
-              <div>Class Name</div>
-              <div className="text-center">Students</div>
-              <div className="text-center">Exams</div>
-              <div className="text-center">Average Score</div>
-            </div>
-            {recentClasses.map((cls) => (
-              <div 
-                key={cls.name} 
-                className="grid grid-cols-4 p-4 border-b hover:bg-muted/50 cursor-pointer"
-                onClick={() => navigate(`/classes/${cls.name.replace(/\s+/g, '-').toLowerCase()}`)}
-              >
-                <div className="font-medium">{cls.name}</div>
-                <div className="text-center">{cls.students}</div>
-                <div className="text-center">{cls.exams}</div>
-                <div className="text-center">{cls.average}%</div>
+          {recentClasses.length > 0 ? (
+            <div className="rounded-md border">
+              <div className="grid grid-cols-3 p-4 font-medium border-b">
+                <div>Class Name</div>
+                <div className="text-center">Students</div>
+                <div className="text-center">Exams</div>
               </div>
-            ))}
-          </div>
+              {recentClasses.map((cls) => (
+                <div 
+                  key={cls.id} 
+                  className="grid grid-cols-3 p-4 border-b hover:bg-muted/50 cursor-pointer"
+                  onClick={() => navigate(`/classes/${cls.id}`)}
+                >
+                  <div className="font-medium">{cls.name}</div>
+                  <div className="text-center">{cls.students?.[0]?.count || 0}</div>
+                  <div className="text-center">{cls.exams?.[0]?.count || 0}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10">
+              <p className="text-muted-foreground">No classes found. Create a new class to get started.</p>
+              <Button 
+                onClick={() => navigate('/classes/new')}
+                className="mt-4 bg-rubric-navy hover:bg-rubric-navy-light"
+              >
+                <PlusIcon className="mr-2 h-4 w-4" /> Create Your First Class
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
